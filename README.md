@@ -41,6 +41,8 @@ git clone https://github.com/AntoDav00/portfolio.git
 npm install
 npm run dev
 ```
+## 📁 Project Structure
+```
 src/
 ├── assets/
 ├── components/
@@ -53,19 +55,24 @@ src/
 ├── App.jsx
 ├── index.css
 └── main.jsx
+```
 
-🌟 Key Features Implementation
+## 🌟 Key Features Implementation
 Responsive design
 Performance optimization
 Smooth animations
 Accessible UI components
 
-🤝 Contributing
+## 🤝 Contributing
 Suggestions and contributions are welcome!
 
-📧 Contact
-GitHub: https://bit.ly/GitAntoDav
-LinkedIn: https://bit.ly/LinkedinAntonio
+## 📧 Contact
+- **GitHub:** [Antonio](https://https://bit.ly/GitAntoDav)
+- **LinkedIn:** [Antonio](https://bit.ly/LinkedinAntonio)
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 📌 Deployment
 
