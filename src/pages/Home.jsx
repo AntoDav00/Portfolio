@@ -764,7 +764,7 @@ const Home = () => {
         <div
           id="projects"
           ref={projectsRef}
-          className="w-full min-h-screen flex flex-col justify-start items-center text-center relative bg-black pt-24 overflow-hidden"
+          className="w-full min-h-screen flex flex-col justify-start items-center text-center relative bg-black py-32 pb-48 overflow-hidden"
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-20 z-0"
@@ -816,7 +816,9 @@ const Home = () => {
                       hover:border-violet-500/30
                       transition-all duration-300
                       shadow-lg
-                      hover:shadow-xl hover:shadow-violet-500/20"
+                      hover:shadow-xl hover:shadow-violet-500/20
+                      h-full
+                      flex flex-col"
                   >
                     {/* Decorative Accent */}
                     <div className="absolute top-0 left-0 w-full h-1 
@@ -824,7 +826,7 @@ const Home = () => {
                       transform -skew-x-12 origin-top-left"
                     />
 
-                    <div className="p-6 relative z-10">
+                    <div className="p-6 relative z-10 flex flex-col flex-grow">
                       {/* Project Header */}
                       <div className="flex items-center mb-4">
                         <div className="relative mr-4">
@@ -890,12 +892,12 @@ const Home = () => {
                         before:h-full 
                         before:bg-gradient-to-l 
                         before:from-[#1a1a2e] 
-                        before:to-transparent">
+                        before:to-transparent flex-grow">
                         "{truncateText(project.description)}"
                       </p>
 
                       {/* Topics */}
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      <div className="flex flex-wrap gap-2 mb-4 mt-auto">
                         {project.topics && project.topics.slice(0, 3).map(topic => (
                           <span
                             key={topic}
@@ -913,7 +915,7 @@ const Home = () => {
                       </div>
 
                       {/* Project Actions */}
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-center mt-auto">
                         <div className="flex space-x-3">
                           <a
                             href={project.html_url}
@@ -959,23 +961,22 @@ const Home = () => {
         </div>
 
         {/* Contact Section */}
-
         <div
           id="contact"
           ref={contactRef}
-          className="w-full min-h-screen flex flex-col justify-start items-center text-center relative bg-black pt-24 overflow-hidden"
+          className="w-full min-h-screen flex flex-col justify-center items-center text-center relative bg-black py-24 overflow-y-auto"
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-20 z-0"
             style={{ backgroundImage: `url(${new URL('../assets/media/bg.jpg', import.meta.url).href})` }}
           />
 
-          <div className="relative  w-full max-w-6xl px-4 flex flex-col items-center">
+          <div className="relative z-10 w-full max-w-6xl px-4 flex flex-col items-center space-y-12">
             <motion.div
               initial={{ opacity: 0, y: -50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center mb-8"
+              className="text-center mb-8 w-full"
             >
               <h2
                 id="contact-form-title"
