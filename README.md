@@ -76,7 +76,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📌 Deployment
 
-[![Netlify Status]()](https://app.netlify.com/sites/portfolio/deploys)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/f37f6120-451d-4e3a-860f-22643657ee5a/deploy-status)](https://app.netlify.com/sites/antoniodaversa/deploys)
 
 - **Link:** [Portfolio](https://antoniodaversa.netlify.app//)
 
