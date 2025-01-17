@@ -529,7 +529,7 @@ const Home = () => {
     <div className="fixed top-0 left-0 w-full h-screen overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full bg-black opacity-100"></div>
       <video
-        src="src/assets/media/Abstract_Computer_Code_Running_Virtual_Space_video_stock_100_roy.webm"
+        src={new URL('../assets/media/Abstract_Computer_Code_Running_Virtual_Space_video_stock_100_roy.webm', import.meta.url).href}
         className="absolute top-0 left-0 w-full h-screen object-cover opacity-10"
         autoPlay
         loop
@@ -705,7 +705,7 @@ const Home = () => {
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-20 z-0"
-            style={{ backgroundImage: "url('src/assets/media/bg.jpg')" }}
+            style={{ backgroundImage: `url(${new URL('../assets/media/bg.jpg', import.meta.url).href})` }}
           />
 
           <div className="relative z-10 w-full max-w-6xl px-4 mb-12">
@@ -727,7 +727,7 @@ const Home = () => {
             {/* Colonna Sinistra: Profilo */}
             <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
               <motion.img
-                src="src/assets/media/profile.jpg"
+                src={new URL('../assets/media/profile.jpg', import.meta.url).href}
                 alt="Antonio D'Aversa"
                 className="w-32 md:w-48 h-32 md:h-48 object-cover rounded-full border-4 border-violet-500 shadow-2xl"
               />
@@ -740,7 +740,7 @@ const Home = () => {
                 </p>
                 <div className="flex justify-center lg:justify-start space-x-4">
                   <motion.a
-                    href="src/assets/media/cv-2.pdf"
+                    href={new URL('../assets/media/cv-2.pdf', import.meta.url).href}
                     target="_blank"
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.05 }}
@@ -768,7 +768,7 @@ const Home = () => {
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-20 z-0"
-            style={{ backgroundImage: "url('src/assets/media/bg1.jpg')" }}
+            style={{ backgroundImage: `url(${new URL('../assets/media/bg1.jpg', import.meta.url).href})` }}
           />
 
           <div className="relative z-10 w-full max-w-6xl px-4">
@@ -967,7 +967,7 @@ const Home = () => {
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-20 z-0"
-            style={{ backgroundImage: "url('src/assets/media/bg.jpg')" }}
+            style={{ backgroundImage: `url(${new URL('../assets/media/bg.jpg', import.meta.url).href})` }}
           />
 
           <div className="relative  w-full max-w-6xl px-4 flex flex-col items-center">
