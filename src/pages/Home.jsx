@@ -995,7 +995,11 @@ const Home = () => {
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-8 border border-white/20 w-full relative"
+                className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-8 border border-white/20 w-full relative 
+                  will-change-transform 
+                  transform transition-transform duration-300 
+                  hover:scale-[1.02]
+                  bg-opacity-20"
               >
                 <form 
                   onSubmit={handleSubmit} 
