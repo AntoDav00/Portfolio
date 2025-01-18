@@ -989,18 +989,18 @@ const Home = () => {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-12 w-full">
+            <div className="grid md:grid-cols-2 gap-12 w-full relative">
               {/* Sezione Sinistra: Form di Contatto */}
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
-                className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-8 border border-white/20 w-full"
+                className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-8 border border-white/20 w-full relative"
               >
                 <form 
                   onSubmit={handleSubmit} 
                   aria-labelledby="contact-form-title"
-                  className="space-y-4"
+                  className="space-y-6"
                 >
                   <div>
                     <label 
@@ -1126,13 +1126,13 @@ const Home = () => {
               </motion.div>
 
               {/* Sezione Destra: Connessioni */}
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="flex flex-col justify-center space-y-4 sm:space-y-8"
-              >
-                <div className="bg-zinc-800/50 rounded-xl p-4 sm:p-6 border border-zinc-700/50">
+              <div className="flex flex-col">
+                <motion.div
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-6 border border-white/20 w-full relative mb-6"
+                >
                   <h3 className="text-2xl font-bold text-white mb-4 sm:mb-6 text-center">Connect With Me</h3>
                   <div className="flex justify-center space-x-4 sm:space-x-6">
                     {socialLinks.map((link) => (
@@ -1158,8 +1158,22 @@ const Home = () => {
                       antoniodaversa71@gmail.com
                     </a>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+
+                {/* Firma */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 0.7, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  className="flex justify-center items-center"
+                >
+                  <img 
+                    src={new URL('../assets/media/firma.png', import.meta.url).href} 
+                    alt="Antonio D'Aversa Signature" 
+                    className="w-48 h-auto opacity-70"
+                  />
+                </motion.div>
+              </div>
             </div>
           </div>
         </div>
