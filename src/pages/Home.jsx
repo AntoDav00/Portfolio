@@ -527,12 +527,12 @@ const Home = () => {
   const socialLinks = [
     {
       name: 'GitHub',
-      url: 'https://github.com/AntoDav00',
+      url: 'https://bit.ly/GitAntoDav',
       icon: FaGithub
     },
     {
       name: 'LinkedIn',
-      url: 'https://www.linkedin.com/in/antoniodaversa-developer-jr/',
+      url: 'https://bit.ly/LinkedinAntonio/',
       icon: FaLinkedin
     }
   ];
@@ -647,7 +647,7 @@ const Home = () => {
                 <FaGithub size={24} />
               </a>
               <a 
-                href="https://bit.ly/LinkedInAntoDav"
+                href="https://bit.ly/LinkedInAntonio"
                 target="_blank" 
                 rel="noopener noreferrer"
                 aria-label="Connettiti con me su LinkedIn"
