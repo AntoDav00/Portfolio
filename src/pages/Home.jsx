@@ -532,7 +532,7 @@ const Home = () => {
     },
     {
       name: 'LinkedIn',
-      url: 'https://bit.ly/LinkedinAntonio/',
+      url: 'https://bit.ly/LinkedinAntonio',
       icon: FaLinkedin
     }
   ];
@@ -647,7 +647,7 @@ const Home = () => {
                 <FaGithub size={24} />
               </a>
               <a 
-                href="https://bit.ly/LinkedInAntonio"
+                href="https://bit.ly/LinkedinAntonio"
                 target="_blank" 
                 rel="noopener noreferrer"
                 aria-label="Connettiti con me su LinkedIn"
