@@ -508,7 +508,7 @@ const Home = () => {
   };
 
   const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const re = /^[^\s@]+@[^\s@]+\.(com|net|org|edu|gov|it|uk|fr|de|es|jp|br|info|biz|online|site|tech|eu|co|me|tv|ai|dev)$/i;
     return re.test(String(email).toLowerCase());
   };
 
