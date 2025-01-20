@@ -532,7 +532,7 @@ const Home = () => {
     },
     {
       name: 'LinkedIn',
-      url: 'https://www.linkedin.com/in/antonio-daversa/',
+      url: 'https://www.linkedin.com/in/antoniodaversa-developer-jr/',
       icon: FaLinkedin
     }
   ];
