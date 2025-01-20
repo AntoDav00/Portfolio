@@ -7,17 +7,7 @@ import {
   FaBriefcase,
   FaGraduationCap,
   FaCertificate,
-  FaChevronLeft,
-  FaChevronRight,
   FaLink,
-  FaPhp,
-  FaJsSquare,
-  FaPython,
-  FaReact,
-  FaNodeJs,
-  FaHtml5,
-  FaCss3,
-  FaJava,
   FaGithub,
   FaLinkedin,
   FaPaperPlane,
@@ -27,7 +17,8 @@ import {
   FaLaptopCode,
   FaSchool,
   FaAward,
-  FaChevronDown
+  FaChevronDown,
+  FaWhatsapp
 } from 'react-icons/fa';
 import emailjs from '@emailjs/browser';
 import ReCAPTCHA from "react-google-recaptcha";
@@ -534,7 +525,13 @@ const Home = () => {
       name: 'LinkedIn',
       url: 'https://bit.ly/LinkedinAntonio',
       icon: FaLinkedin
+    },
+    {
+      name: 'Whatsapp',
+      url: 'https://bit.ly/WpAntoDav',
+      icon: FaWhatsapp
     }
+
   ];
 
   return (
