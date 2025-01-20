@@ -407,6 +407,17 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Check ReCAPTCHA first
+    if (!capVal) {
+      setFormStatus({
+        isSubmitting: false,
+        message: 'Please complete the ReCAPTCHA ',
+        type: 'error',
+        errors: {}
+      });
+      return;
+    }
+
     // Reset previous error states
     const newFormErrors = {
       name: '',
@@ -451,9 +462,10 @@ const Home = () => {
         'service_3ti30tg',
         'template_9rwl1xo',
         {
-          name: formData.name,
-          email: formData.email,
-          message: formData.message
+          from_name: formData.name,
+          from_email: formData.email,
+          message: formData.message,
+          reply_to: formData.email
         },
         'MN7sxWzDfWf1jy68i'
       );
