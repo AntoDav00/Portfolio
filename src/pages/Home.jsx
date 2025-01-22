@@ -433,8 +433,70 @@ const Home = () => {
       .substring(0, 500);  // Limita la lunghezza
   };
 
+  const logAttackAttempt = async (attackData) => {
+    try {
+      // Utilizza lo stesso servizio EmailJS per inviare log di sicurezza
+      await emailjs.send(
+        'service_3ti30tg',  // Stesso servizio del form
+        'template_h88220t',  // Nuovo template per log di sicurezza
+        {
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          attackType: attackData.type,
+          attackPayload: JSON.stringify(attackData.payload),
+          formData: JSON.stringify(attackData.formData),
+          attackDetails: `
+            Potential Security Threat Detected!
+            
+            Attack Type: ${attackData.type}
+            Timestamp: ${new Date().toISOString()}
+            User Agent: ${navigator.userAgent}
+            
+            Payload Details:
+            ${JSON.stringify(attackData.payload, null, 2)}
+            
+            Form Data:
+            ${JSON.stringify(attackData.formData, null, 2)}
+          `
+        },
+        'MN7sxWzDfWf1jy68i'  // Stesso public key
+      );
+
+      console.warn('🚨 Potential attack logged:', attackData);
+    } catch (error) {
+      console.error('Errore nel logging di attacco:', error);
+    }
+  };
+
+  const createHoneypotField = () => {
+    const honeypotField = document.createElement('input');
+    honeypotField.type = 'text';
+    honeypotField.name = 'honeypot_trap';
+    honeypotField.style.display = 'none';  // Campo nascosto
+    return honeypotField;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Controllo honeypot
+    const honeypotFields = document.getElementsByName('honeypot_trap');
+    if (honeypotFields.length > 0 && honeypotFields[0].value) {
+      // Campo honeypot compilato = probabile bot/attacco
+      await logAttackAttempt({
+        type: 'HoneypotTriggered',
+        payload: honeypotFields[0].value,
+        formData: formData
+      });
+
+      // Blocca completamente l'invio
+      setFormStatus({
+        isSubmitting: false,
+        message: 'Suspicious activity detected',
+        type: 'error'
+      });
+      return;
+    }
 
     // Sanitize inputs
     const sanitizedFormData = {
@@ -447,7 +509,7 @@ const Home = () => {
     if (!capVal) {
       setFormStatus({
         isSubmitting: false,
-        message: 'Completa il ReCAPTCHA',
+        message: 'Please complete the ReCAPTCHA',
         type: 'error',
         errors: {}
       });
@@ -463,15 +525,15 @@ const Home = () => {
 
     // Validation with sanitized data
     if (!sanitizedFormData.name || sanitizedFormData.name.length < 2) {
-      newFormErrors.name = 'Nome non valido';
+      newFormErrors.name = 'Invalid name';
     }
 
     if (!validateEmail(sanitizedFormData.email)) {
-      newFormErrors.email = 'Email non valida';
+      newFormErrors.email = 'Invalid email address';
     }
 
     if (!sanitizedFormData.message || sanitizedFormData.message.length < 5) {
-      newFormErrors.message = 'Messaggio troppo breve o non valido';
+      newFormErrors.message = 'Message too short or invalid';
     }
 
     // Controllo finale per input vuoti dopo sanitizzazione
@@ -482,12 +544,12 @@ const Home = () => {
     ) {
       setFormStatus({
         isSubmitting: false, 
-        message: 'Input contiene caratteri non consentiti', 
+        message: 'Input contains unauthorized characters', 
         type: 'error',
         errors: {
-          name: sanitizedFormData.name ? '' : 'Input non valido',
-          email: sanitizedFormData.email ? '' : 'Input non valido',
-          message: sanitizedFormData.message ? '' : 'Input non valido'
+          name: sanitizedFormData.name ? '' : 'Invalid input',
+          email: sanitizedFormData.email ? '' : 'Invalid input',
+          message: sanitizedFormData.message ? '' : 'Invalid input'
         }
       });
       return;
@@ -1059,7 +1121,7 @@ const Home = () => {
                 transition={{ duration: 0.6 }}
                 className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-8 border border-white/20 w-full relative 
                   will-change-transform 
-                  transform transition-transform duration-300 
+                  transform transition-transform duration-300
                   hover:scale-[1.02]
                   bg-opacity-20"
               >
@@ -1165,6 +1227,8 @@ const Home = () => {
                       theme="dark"
                     />
                   </div>
+
+                  {createHoneypotField()}
 
                   <button
                     type="submit"
