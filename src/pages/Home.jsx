@@ -436,7 +436,7 @@ const Home = () => {
     return sqlInjectionPatterns.some(pattern => pattern.test(input));
   };
 
-  const sanitizeInput = (input) => {
+  const sanitizeInput = (input, currentFormData = {}) => {
     if (typeof input !== 'string') return '';
 
     // Controllo XSS prima di altri controlli
@@ -447,7 +447,7 @@ const Home = () => {
       logAttackAttempt({
         type: 'XSSAttempt',
         payload: input,
-        formData: formData
+        formData: currentFormData
       });
 
       return '';  // Blocca completamente l'input
@@ -461,7 +461,7 @@ const Home = () => {
       logAttackAttempt({
         type: 'SQLInjectionAttempt',
         payload: input,
-        formData: formData
+        formData: currentFormData
       });
 
       return '';  // Blocca completamente l'input
@@ -542,9 +542,9 @@ const Home = () => {
 
     // Sanitize inputs
     const sanitizedFormData = {
-      name: sanitizeInput(formData.name),
-      email: sanitizeInput(formData.email),
-      message: sanitizeInput(formData.message)
+      name: sanitizeInput(formData.name, formData),
+      email: sanitizeInput(formData.email, formData),
+      message: sanitizeInput(formData.message, formData)
     };
 
     // Check ReCAPTCHA first
