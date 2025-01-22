@@ -395,25 +395,39 @@ const Home = () => {
     setCapVal(val);
   };
 
-  const sanitizeInput = (input) => {
-    if (typeof input !== 'string') return '';
-    
-    // Rimuove completamente input contenenti script o eventi
+  const isMaliciousInput = (input) => {
+    // Lista di pattern dannosi
     const dangerousPatterns = [
-      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-      /on\w+="[^"]*"/gi,  // Rimuove attributi di eventi
-      /<\/?[a-z][\s\S]*?>/gi,  // Rimuove tutti i tag HTML
-      /javascript:/gi,  // Rimuove riferimenti a javascript
-      /&lt;script&gt;/gi,  // Rimuove script codificati
+      /<script/i,           // Tag script
+      /javascript:/i,       // Protocollo javascript
+      /on\w+=/i,            // Event handlers
+      /&lt;script/i,        // Script codificato in HTML
+      /alert\(/i,           // Chiamate alert
+      /\beval\(/i,          // Funzione eval
+      /\bdocument\./i,      // Accesso al documento
+      /\bwindow\./i,        // Accesso a window
+      /\blocation\./i,      // Manipolazione location
+      /\bcookie/i,          // Accesso ai cookie
+      /\bfetch\(/i,         // Chiamate fetch
+      /\bxhr\(/i,           // XMLHttpRequest
+      /\bXMLHttpRequest/i   // Richieste HTTP
     ];
 
-    let sanitizedInput = input;
-    dangerousPatterns.forEach(pattern => {
-      sanitizedInput = sanitizedInput.replace(pattern, '');
-    });
+    // Controllo se l'input contiene pattern dannosi
+    return dangerousPatterns.some(pattern => pattern.test(input));
+  };
+
+  const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return '';
+
+    // Se l'input è considerato dannoso, restituisci stringa vuota
+    if (isMaliciousInput(input)) {
+      console.error('🚨 Tentativo di input dannoso rilevato:', input);
+      return '';
+    }
 
     // Rimuove caratteri speciali e taglia la lunghezza
-    return sanitizedInput
+    return input
       .replace(/[<>&'"]/g, '')  // Rimuove caratteri potenzialmente pericolosi
       .trim()
       .substring(0, 500);  // Limita la lunghezza
@@ -433,7 +447,7 @@ const Home = () => {
     if (!capVal) {
       setFormStatus({
         isSubmitting: false,
-        message: 'Please complete the ReCAPTCHA ',
+        message: 'Completa il ReCAPTCHA',
         type: 'error',
         errors: {}
       });
@@ -460,29 +474,26 @@ const Home = () => {
       newFormErrors.message = 'Messaggio troppo breve o non valido';
     }
 
-    // Controllo aggiuntivo per input potenzialmente dannosi
-    const containsDangerousInput = 
-      sanitizedFormData.name.includes('<') || 
-      sanitizedFormData.name.includes('>') ||
-      sanitizedFormData.message.includes('<') ||
-      sanitizedFormData.message.includes('>');
-
-    if (containsDangerousInput) {
-      newFormErrors.message = 'Input contiene caratteri non consentiti';
-    }
-
-    // If any errors exist, set them and stop submission
-    if (Object.values(newFormErrors).some(error => error !== '')) {
+    // Controllo finale per input vuoti dopo sanitizzazione
+    if (
+      !sanitizedFormData.name || 
+      !sanitizedFormData.email || 
+      !sanitizedFormData.message
+    ) {
       setFormStatus({
         isSubmitting: false, 
-        message: 'Errore nei dati inseriti', 
+        message: 'Input contiene caratteri non consentiti', 
         type: 'error',
-        errors: newFormErrors
+        errors: {
+          name: sanitizedFormData.name ? '' : 'Input non valido',
+          email: sanitizedFormData.email ? '' : 'Input non valido',
+          message: sanitizedFormData.message ? '' : 'Input non valido'
+        }
       });
       return;
     }
 
-    // Proceed with form submission using sanitized data
+    // Resto del codice rimane invariato...
     try {
       setFormStatus({ 
         isSubmitting: true, 
