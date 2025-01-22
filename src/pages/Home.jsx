@@ -417,18 +417,60 @@ const Home = () => {
     return dangerousPatterns.some(pattern => pattern.test(input));
   };
 
+  const isSQLInjection = (input) => {
+    // Pattern per rilevare tentativi di SQL Injection
+    const sqlInjectionPatterns = [
+      /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER)\b)/i,  // Comandi SQL
+      /(\d+\s*[=-]\s*\d+)/,  // Confronti numerici sospetti
+      /['"]?\s*OR\s+1\s*=\s*1/i,  // Condizione sempre vera
+      /\b(AND|OR)\b.{1,100}--/i,  // Commenti SQL
+      /\/\*.*\*\//,  // Commenti multilinea
+      /;\s*(?:DELETE|DROP|TRUNCATE)/i,  // Comandi distruttivi
+      /\b(EXEC|EXECUTE)\s+\(/i,  // Esecuzione procedure
+      /\bINTO\s+OUTFILE\b/i,  // Scrittura file
+      /\bLOAD_FILE\b/i,  // Caricamento file
+      /\|\|/,  // Concatenazione
+      /\b(CONCAT|CHAR)\(/i  // Funzioni di manipolazione
+    ];
+
+    return sqlInjectionPatterns.some(pattern => pattern.test(input));
+  };
+
   const sanitizeInput = (input) => {
     if (typeof input !== 'string') return '';
 
-    // Se l'input è considerato dannoso, restituisci stringa vuota
+    // Controllo XSS prima di altri controlli
     if (isMaliciousInput(input)) {
-      console.error('🚨 Tentativo di input dannoso rilevato:', input);
-      return '';
+      console.error('🚨 Potential XSS attempt:', input);
+      
+      // Log dell'attacco XSS
+      logAttackAttempt({
+        type: 'XSSAttempt',
+        payload: input,
+        formData: formData
+      });
+
+      return '';  // Blocca completamente l'input
+    }
+
+    // Controllo SQL Injection
+    if (isSQLInjection(input)) {
+      console.error('🚨 Potential SQL Injection attempt:', input);
+      
+      // Log dell'attacco SQL
+      logAttackAttempt({
+        type: 'SQLInjectionAttempt',
+        payload: input,
+        formData: formData
+      });
+
+      return '';  // Blocca completamente l'input
     }
 
     // Rimuove caratteri speciali e taglia la lunghezza
     return input
       .replace(/[<>&'"]/g, '')  // Rimuove caratteri potenzialmente pericolosi
+      .replace(/[;'"\\]/g, '')  // Rimuove caratteri SQL
       .trim()
       .substring(0, 500);  // Limita la lunghezza
   };
