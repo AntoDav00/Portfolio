@@ -371,7 +371,8 @@ const Home = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    message: ''
+    message: '',
+    honeypot: ''
   });
   const [formStatus, setFormStatus] = useState({
     isSubmitting: false,
@@ -379,7 +380,6 @@ const Home = () => {
     type: '',
     errors: {}
   });
-  const [recaptchaToken, setRecaptchaToken] = useState(null);
   const [capVal, setCapVal] = useState(null);
   const recaptchaRef = useRef(null);
 
@@ -510,24 +510,26 @@ const Home = () => {
     }
   };
 
-  const createHoneypotField = () => {
-    const honeypotField = document.createElement('input');
-    honeypotField.type = 'text';
-    honeypotField.name = 'honeypot_trap';
-    honeypotField.style.display = 'none';  // Campo nascosto
-    return honeypotField;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+    // Clear previous error messages when user starts typing
+    if (formStatus.message) {
+      setFormStatus({ isSubmitting: false, message: '', type: '', errors: {} });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Controllo honeypot
-    const honeypotFields = document.getElementsByName('honeypot_trap');
-    if (honeypotFields.length > 0 && honeypotFields[0].value) {
-      // Campo honeypot compilato = probabile bot/attacco
+    if (formData.honeypot) {
       await logAttackAttempt({
         type: 'HoneypotTriggered',
-        payload: honeypotFields[0].value,
+        payload: formData.honeypot,
         formData: formData
       });
 
@@ -629,7 +631,8 @@ const Home = () => {
       setFormData({
         name: '',
         email: '',
-        message: ''
+        message: '',
+        honeypot: ''
       });
 
       // Reset reCAPTCHA
@@ -658,18 +661,6 @@ const Home = () => {
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.(com|net|org|edu|gov|it|uk|fr|de|es|jp|br|info|biz|online|site|tech|eu|co|me|tv|ai|dev)$/i;
     return re.test(String(email).toLowerCase());
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-    // Clear previous error messages when user starts typing
-    if (formStatus.message) {
-      setFormStatus({ isSubmitting: false, message: '', type: '', errors: {} });
-    }
   };
 
   const socialLinks = [
@@ -1270,7 +1261,13 @@ const Home = () => {
                     />
                   </div>
 
-                  {createHoneypotField()}
+                  <input
+                    type="text"
+                    name="honeypot"
+                    style={{ display: 'none' }}
+                    value={formData.honeypot}
+                    onChange={handleChange}
+                  />
 
                   <button
                     type="submit"
