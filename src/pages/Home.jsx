@@ -395,8 +395,25 @@ const Home = () => {
     setCapVal(val);
   };
 
+  const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return '';
+    // Remove HTML tags and limit length
+    return input
+      .replace(/<[^>]*>/g, '')  // Remove HTML tags
+      .replace(/[<>&'"]/g, '')  // Remove potentially dangerous characters
+      .trim()
+      .substring(0, 500);  // Limit input length
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Sanitize inputs
+    const sanitizedFormData = {
+      name: sanitizeInput(formData.name),
+      email: sanitizeInput(formData.email),
+      message: sanitizeInput(formData.message)
+    };
 
     // Check ReCAPTCHA first
     if (!capVal) {
@@ -416,16 +433,16 @@ const Home = () => {
       message: ''
     };
 
-    // Validation
-    if (!formData.name.trim()) {
+    // Validation with sanitized data
+    if (!sanitizedFormData.name) {
       newFormErrors.name = 'Please enter your name';
     }
 
-    if (!validateEmail(formData.email)) {
+    if (!validateEmail(sanitizedFormData.email)) {
       newFormErrors.email = 'Please enter a valid email address';
     }
 
-    if (!formData.message.trim()) {
+    if (!sanitizedFormData.message) {
       newFormErrors.message = 'Please enter a message';
     }
 
@@ -440,7 +457,7 @@ const Home = () => {
       return;
     }
 
-    // Proceed with form submission
+    // Proceed with form submission using sanitized data
     try {
       setFormStatus({ 
         isSubmitting: true, 
@@ -453,10 +470,10 @@ const Home = () => {
         'service_3ti30tg',
         'template_9rwl1xo',
         {
-          from_name: formData.name,
-          from_email: formData.email,
-          message: formData.message,
-          reply_to: formData.email
+          from_name: sanitizedFormData.name,
+          from_email: sanitizedFormData.email,
+          message: sanitizedFormData.message,
+          reply_to: sanitizedFormData.email
         },
         'MN7sxWzDfWf1jy68i'
       );
