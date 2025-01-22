@@ -397,12 +397,26 @@ const Home = () => {
 
   const sanitizeInput = (input) => {
     if (typeof input !== 'string') return '';
-    // Remove HTML tags and limit length
-    return input
-      .replace(/<[^>]*>/g, '')  // Remove HTML tags
-      .replace(/[<>&'"]/g, '')  // Remove potentially dangerous characters
+    
+    // Rimuove completamente input contenenti script o eventi
+    const dangerousPatterns = [
+      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+      /on\w+="[^"]*"/gi,  // Rimuove attributi di eventi
+      /<\/?[a-z][\s\S]*?>/gi,  // Rimuove tutti i tag HTML
+      /javascript:/gi,  // Rimuove riferimenti a javascript
+      /&lt;script&gt;/gi,  // Rimuove script codificati
+    ];
+
+    let sanitizedInput = input;
+    dangerousPatterns.forEach(pattern => {
+      sanitizedInput = sanitizedInput.replace(pattern, '');
+    });
+
+    // Rimuove caratteri speciali e taglia la lunghezza
+    return sanitizedInput
+      .replace(/[<>&'"]/g, '')  // Rimuove caratteri potenzialmente pericolosi
       .trim()
-      .substring(0, 500);  // Limit input length
+      .substring(0, 500);  // Limita la lunghezza
   };
 
   const handleSubmit = async (e) => {
@@ -434,24 +448,35 @@ const Home = () => {
     };
 
     // Validation with sanitized data
-    if (!sanitizedFormData.name) {
-      newFormErrors.name = 'Please enter your name';
+    if (!sanitizedFormData.name || sanitizedFormData.name.length < 2) {
+      newFormErrors.name = 'Nome non valido';
     }
 
     if (!validateEmail(sanitizedFormData.email)) {
-      newFormErrors.email = 'Please enter a valid email address';
+      newFormErrors.email = 'Email non valida';
     }
 
-    if (!sanitizedFormData.message) {
-      newFormErrors.message = 'Please enter a message';
+    if (!sanitizedFormData.message || sanitizedFormData.message.length < 5) {
+      newFormErrors.message = 'Messaggio troppo breve o non valido';
+    }
+
+    // Controllo aggiuntivo per input potenzialmente dannosi
+    const containsDangerousInput = 
+      sanitizedFormData.name.includes('<') || 
+      sanitizedFormData.name.includes('>') ||
+      sanitizedFormData.message.includes('<') ||
+      sanitizedFormData.message.includes('>');
+
+    if (containsDangerousInput) {
+      newFormErrors.message = 'Input contiene caratteri non consentiti';
     }
 
     // If any errors exist, set them and stop submission
-    if (newFormErrors.name || newFormErrors.email || newFormErrors.message) {
+    if (Object.values(newFormErrors).some(error => error !== '')) {
       setFormStatus({
         isSubmitting: false, 
-        message: '', 
-        type: '',
+        message: 'Errore nei dati inseriti', 
+        type: 'error',
         errors: newFormErrors
       });
       return;
