@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaCode,
@@ -12,6 +12,7 @@ import {
   FaLinkedin,
   FaPaperPlane,
   FaEye,
+  FaDownload,
   FaStore,
   FaPaintBrush,
   FaLaptopCode,
@@ -183,7 +184,7 @@ const SkillsAndExperienceCarousel = () => {
               transition={{ duration: 0.3 }}
               className="space-y-4 px-4 sm:px-0"
             >
-              {skillCategories[activeSkillCategory].skills.map((skill, index) => (
+              {skillCategories[activeSkillCategory].skills.map((skill) => (
                 <div key={skill.name} className="w-full">
                   <div className="flex justify-between text-sm text-white/70 mb-1">
                     <span>{skill.name}</span>
@@ -262,38 +263,30 @@ const SkillsAndExperienceCarousel = () => {
 };
 
 // Custom Typing Component
-const TypingEffect = ({ texts, speed = 100, backSpeed = 50 }) => {
-  const [displayText, setDisplayText] = React.useState('');
-  const [currentTextIndex, setCurrentTextIndex] = React.useState(0);
-  const [isDeleting, setIsDeleting] = React.useState(false);
+const TypingEffect = ({ texts, speed = 100, backSpeed = 50, pause = 1000 }) => {
+  const [displayText, setDisplayText] = useState('');
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  React.useEffect(() => {
-    const handleTyping = () => {
-      const currentText = texts[currentTextIndex];
+  useEffect(() => {
+    const currentText = texts[currentTextIndex];
+    const isComplete = !isDeleting && displayText === currentText;
 
-      if (!isDeleting) {
-        // Typing
-        if (displayText.length < currentText.length) {
-          setDisplayText(currentText.slice(0, displayText.length + 1));
-        } else {
-          // Pause before deleting
-          setTimeout(() => setIsDeleting(true), 1000);
-        }
+    const timer = setTimeout(() => {
+      if (isComplete) {
+        setIsDeleting(true);
+      } else if (!isDeleting) {
+        setDisplayText(currentText.slice(0, displayText.length + 1));
+      } else if (displayText.length > 0) {
+        setDisplayText(currentText.slice(0, displayText.length - 1));
       } else {
-        // Deleting
-        if (displayText.length > 0) {
-          setDisplayText(currentText.slice(0, displayText.length - 1));
-        } else {
-          // Move to next text
-          setIsDeleting(false);
-          setCurrentTextIndex((prev) => (prev + 1) % texts.length);
-        }
+        setIsDeleting(false);
+        setCurrentTextIndex((prev) => (prev + 1) % texts.length);
       }
-    };
+    }, isComplete ? pause : isDeleting ? backSpeed : speed);
 
-    const typingTimer = setTimeout(handleTyping, isDeleting ? backSpeed : speed);
-    return () => clearTimeout(typingTimer);
-  }, [displayText, currentTextIndex, isDeleting, texts, speed, backSpeed]);
+    return () => clearTimeout(timer);
+  }, [displayText, currentTextIndex, isDeleting, texts, speed, backSpeed, pause]);
 
   return (
     <div className="h-[30px] min-h-[30px] flex items-center">
@@ -302,71 +295,112 @@ const TypingEffect = ({ texts, speed = 100, backSpeed = 50 }) => {
   );
 };
 
+const GITHUB_USER = 'antodav00';
+const PROJECTS_PAGE_SIZE = 6;
+
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_3ti30tg';
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_9rwl1xo';
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'MN7sxWzDfWf1jy68i';
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_GOOGLE_RECAPTCHA_SITE_KEY;
+
+const FIELD_LIMITS = { name: 100, email: 254, message: 2000 };
+
+// Plain-text normalisation only: EmailJS renders template variables escaped,
+// so there is no need to strip quotes/apostrophes (which broke names like D'Aversa).
+const cleanText = (value, maxLength) =>
+  String(value ?? '')
+    // eslint-disable-next-line no-control-regex -- intentionally strips control characters
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .trim()
+    .slice(0, maxLength);
+
+const validateEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email);
+
+const validateForm = ({ name, email, message }) => {
+  const errors = {};
+  if (name.length < 2) errors.name = 'Please enter your name';
+  if (!validateEmail(email)) errors.email = 'Please enter a valid email address';
+  if (message.length < 10) errors.message = 'Message should be at least 10 characters';
+  return errors;
+};
+
 const Home = () => {
-  const homeRef = useRef(null);
-  const aboutRef = useRef(null);
   const projectsRef = useRef(null);
   const contactRef = useRef(null);
 
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [visibleProjects, setVisibleProjects] = useState(6);
+  const [projectsError, setProjectsError] = useState(false);
+  const [visibleProjects, setVisibleProjects] = useState(PROJECTS_PAGE_SIZE);
 
   const loadMoreProjects = () => {
-    setVisibleProjects(prev => prev + 6);
+    setVisibleProjects(prev => prev + PROJECTS_PAGE_SIZE);
+  };
+
+  const scrollToContact = () => {
+    contactRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchProjects = async () => {
       try {
-        const response = await fetch('https://api.github.com/users/antodav00/repos', {
-          headers: {
-            'Accept': 'application/vnd.github.v3+json'
+        const response = await fetch(
+          `https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=updated`,
+          {
+            headers: { Accept: 'application/vnd.github+json' },
+            signal: controller.signal
           }
-        });
+        );
 
         if (!response.ok) {
-          throw new Error(`Errore HTTP: ${response.status}`);
+          throw new Error(`HTTP ${response.status}`);
         }
 
         const allRepos = await response.json();
 
-        const userResponse = await fetch('https://api.github.com/users/antodav00');
-        const userData = await userResponse.json();
-
         const personalProjects = allRepos
           .filter(repo =>
             !repo.fork &&
+            !repo.archived &&
             !repo.name.includes('template') &&
             !repo.name.includes('example') &&
             repo.description
           )
-          .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+          .sort((a, b) => new Date(b.pushed_at || b.updated_at) - new Date(a.pushed_at || a.updated_at))
           .map(repo => ({
             id: repo.id,
-            name: repo.name.replace(/-/g, ' '),
+            name: repo.name.replace(/[-_]/g, ' '),
             description: truncateText(repo.description),
             html_url: repo.html_url,
             homepage: repo.homepage,
             language: repo.language,
             topics: repo.topics,
-            updated_at: new Date(repo.updated_at).toLocaleDateString(),
+            updated_at: new Date(repo.pushed_at || repo.updated_at).toLocaleDateString(),
             owner: {
-              login: userData.login,
-              avatar_url: userData.avatar_url
+              login: repo.owner.login,
+              avatar_url: repo.owner.avatar_url
             }
-          }))
-          .slice(0, visibleProjects);
+          }));
 
         setProjects(personalProjects);
-        setIsLoading(false);
       } catch (error) {
-        console.error('Errore nel recupero dei progetti:', error);
-        setIsLoading(false);
+        if (error.name === 'AbortError') return;
+        console.error('Failed to load projects:', error);
+        setProjectsError(true);
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
       }
     };
+
     fetchProjects();
-  }, [visibleProjects]);
+    return () => controller.abort();
+  }, []);
+
+  const shownProjects = projects.slice(0, visibleProjects);
+  const hasMoreProjects = visibleProjects < projects.length;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -383,131 +417,13 @@ const Home = () => {
   const [capVal, setCapVal] = useState(null);
   const recaptchaRef = useRef(null);
 
-  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_GOOGLE_RECAPTCHA_SITE_KEY;
-
-  useEffect(() => {
-    if (!RECAPTCHA_SITE_KEY) {
-      console.error('ReCAPTCHA site key is missing!');
-    }
-  }, []);
-
   const handleRecaptchaChange = (val) => {
     setCapVal(val);
   };
 
-  const isMaliciousInput = (input) => {
-    // Lista di pattern dannosi
-    const dangerousPatterns = [
-      /<script/i,           // Tag script
-      /javascript:/i,       // Protocollo javascript
-      /on\w+=/i,            // Event handlers
-      /&lt;script/i,        // Script codificato in HTML
-      /alert\(/i,           // Chiamate alert
-      /\beval\(/i,          // Funzione eval
-      /\bdocument\./i,      // Accesso al documento
-      /\bwindow\./i,        // Accesso a window
-      /\blocation\./i,      // Manipolazione location
-      /\bcookie/i,          // Accesso ai cookie
-      /\bfetch\(/i,         // Chiamate fetch
-      /\bxhr\(/i,           // XMLHttpRequest
-      /\bXMLHttpRequest/i   // Richieste HTTP
-    ];
-
-    // Controllo se l'input contiene pattern dannosi
-    return dangerousPatterns.some(pattern => pattern.test(input));
-  };
-
-  const isSQLInjection = (input) => {
-    // Pattern per rilevare tentativi di SQL Injection
-    const sqlInjectionPatterns = [
-      /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER)\b)/i,  // Comandi SQL
-      /(\d+\s*[=-]\s*\d+)/,  // Confronti numerici sospetti
-      /['"]?\s*OR\s+1\s*=\s*1/i,  // Condizione sempre vera
-      /\b(AND|OR)\b.{1,100}--/i,  // Commenti SQL
-      /\/\*.*\*\//,  // Commenti multilinea
-      /;\s*(?:DELETE|DROP|TRUNCATE)/i,  // Comandi distruttivi
-      /\b(EXEC|EXECUTE)\s+\(/i,  // Esecuzione procedure
-      /\bINTO\s+OUTFILE\b/i,  // Scrittura file
-      /\bLOAD_FILE\b/i,  // Caricamento file
-      /\|\|/,  // Concatenazione
-      /\b(CONCAT|CHAR)\(/i  // Funzioni di manipolazione
-    ];
-
-    return sqlInjectionPatterns.some(pattern => pattern.test(input));
-  };
-
-  const sanitizeInput = (input, currentFormData = {}) => {
-    if (typeof input !== 'string') return '';
-
-    // Controllo XSS prima di altri controlli
-    if (isMaliciousInput(input)) {
-      console.error('🚨 Potential XSS attempt:', input);
-      
-      // Log dell'attacco XSS
-      logAttackAttempt({
-        type: 'XSSAttempt',
-        payload: input,
-        formData: currentFormData
-      });
-
-      return '';  // Blocca completamente l'input
-    }
-
-    // Controllo SQL Injection
-    if (isSQLInjection(input)) {
-      console.error('🚨 Potential SQL Injection attempt:', input);
-      
-      // Log dell'attacco SQL
-      logAttackAttempt({
-        type: 'SQLInjectionAttempt',
-        payload: input,
-        formData: currentFormData
-      });
-
-      return '';  // Blocca completamente l'input
-    }
-
-    // Rimuove caratteri speciali e taglia la lunghezza
-    return input
-      .replace(/[<>&'"]/g, '')  // Rimuove caratteri potenzialmente pericolosi
-      .replace(/[;'"\\]/g, '')  // Rimuove caratteri SQL
-      .trim()
-      .substring(0, 500);  // Limita la lunghezza
-  };
-
-  const logAttackAttempt = async (attackData) => {
-    try {
-      // Utilizza lo stesso servizio EmailJS per inviare log di sicurezza
-      await emailjs.send(
-        'service_3ti30tg',  // Stesso servizio del form
-        'template_h88220t',  // Nuovo template per log di sicurezza
-        {
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          attackType: attackData.type,
-          attackPayload: JSON.stringify(attackData.payload),
-          formData: JSON.stringify(attackData.formData),
-          attackDetails: `
-            Potential Security Threat Detected!
-            
-            Attack Type: ${attackData.type}
-            Timestamp: ${new Date().toISOString()}
-            User Agent: ${navigator.userAgent}
-            
-            Payload Details:
-            ${JSON.stringify(attackData.payload, null, 2)}
-            
-            Form Data:
-            ${JSON.stringify(attackData.formData, null, 2)}
-          `
-        },
-        'MN7sxWzDfWf1jy68i'  // Stesso public key
-      );
-
-      console.warn('🚨 Potential attack logged:', attackData);
-    } catch (error) {
-      console.error('Errore nel logging di attacco:', error);
-    }
+  const resetRecaptcha = () => {
+    recaptchaRef.current?.reset();
+    setCapVal(null);
   };
 
   const handleChange = (e) => {
@@ -516,108 +432,69 @@ const Home = () => {
       ...prevState,
       [name]: value
     }));
-    // Clear previous error messages when user starts typing
-    if (formStatus.message) {
-      setFormStatus({ isSubmitting: false, message: '', type: '', errors: {} });
+    // Clear the error for the field being edited and any global message
+    if (formStatus.message || formStatus.errors?.[name]) {
+      setFormStatus(prev => ({
+        ...prev,
+        message: '',
+        type: '',
+        errors: { ...prev.errors, [name]: undefined }
+      }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formStatus.isSubmitting) return;
 
-    // Controllo honeypot
+    // Honeypot: bots fill hidden fields. Pretend success and drop the message silently.
     if (formData.honeypot) {
-      await logAttackAttempt({
-        type: 'HoneypotTriggered',
-        payload: formData.honeypot,
-        formData: formData
-      });
+      setFormData({ name: '', email: '', message: '', honeypot: '' });
+      setFormStatus({ isSubmitting: false, message: 'Message sent successfully!', type: 'success', errors: {} });
+      return;
+    }
 
-      // Blocca completamente l'invio
+    const cleanData = {
+      name: cleanText(formData.name, FIELD_LIMITS.name),
+      email: cleanText(formData.email, FIELD_LIMITS.email),
+      message: cleanText(formData.message, FIELD_LIMITS.message)
+    };
+
+    const errors = validateForm(cleanData);
+    if (Object.keys(errors).length > 0) {
       setFormStatus({
         isSubmitting: false,
-        message: 'Suspicious activity detected',
-        type: 'error'
+        message: 'Please fix the highlighted fields',
+        type: 'error',
+        errors
       });
       return;
     }
 
-    // Sanitize inputs
-    const sanitizedFormData = {
-      name: sanitizeInput(formData.name, formData),
-      email: sanitizeInput(formData.email, formData),
-      message: sanitizeInput(formData.message, formData)
-    };
-
-    // Check ReCAPTCHA first
-    if (!capVal) {
+    if (RECAPTCHA_SITE_KEY && !capVal) {
       setFormStatus({
         isSubmitting: false,
-        message: 'Please complete the ReCAPTCHA',
+        message: 'Please complete the reCAPTCHA',
         type: 'error',
         errors: {}
       });
       return;
     }
 
-    // Reset previous error states
-    const newFormErrors = {
-      name: '',
-      email: '',
-      message: ''
-    };
-
-    // Validation with sanitized data
-    if (!sanitizedFormData.name || sanitizedFormData.name.length < 2) {
-      newFormErrors.name = 'Invalid name';
-    }
-
-    if (!validateEmail(sanitizedFormData.email)) {
-      newFormErrors.email = 'Invalid email address';
-    }
-
-    if (!sanitizedFormData.message || sanitizedFormData.message.length < 5) {
-      newFormErrors.message = 'Message too short or invalid';
-    }
-
-    // Controllo finale per input vuoti dopo sanitizzazione
-    if (
-      !sanitizedFormData.name || 
-      !sanitizedFormData.email || 
-      !sanitizedFormData.message
-    ) {
-      setFormStatus({
-        isSubmitting: false, 
-        message: 'Input contains unauthorized characters', 
-        type: 'error',
-        errors: {
-          name: sanitizedFormData.name ? '' : 'Invalid input',
-          email: sanitizedFormData.email ? '' : 'Invalid input',
-          message: sanitizedFormData.message ? '' : 'Invalid input'
-        }
-      });
-      return;
-    }
-
-    // Resto del codice rimane invariato...
     try {
-      setFormStatus({ 
-        isSubmitting: true, 
-        message: '', 
-        type: '',
-        errors: {}
-      });
+      setFormStatus({ isSubmitting: true, message: '', type: '', errors: {} });
 
-      const response = await emailjs.send(
-        'service_3ti30tg',
-        'template_9rwl1xo',
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
         {
-          from_name: sanitizedFormData.name,
-          from_email: sanitizedFormData.email,
-          message: sanitizedFormData.message,
-          reply_to: sanitizedFormData.email
+          from_name: cleanData.name,
+          from_email: cleanData.email,
+          message: cleanData.message,
+          reply_to: cleanData.email,
+          ...(capVal ? { 'g-recaptcha-response': capVal } : {})
         },
-        'MN7sxWzDfWf1jy68i'
+        { publicKey: EMAILJS_PUBLIC_KEY }
       );
 
       setFormStatus({
@@ -626,41 +503,18 @@ const Home = () => {
         type: 'success',
         errors: {}
       });
-
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        message: '',
-        honeypot: ''
-      });
-
-      // Reset reCAPTCHA
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-      setCapVal(null);
-
+      setFormData({ name: '', email: '', message: '', honeypot: '' });
     } catch (err) {
       console.error('EmailJS Error:', err);
       setFormStatus({
         isSubmitting: false,
-        message: `Failed to send message: ${err.text || 'Unknown error'}`,
+        message: 'Failed to send message. Please try again or reach me on LinkedIn.',
         type: 'error',
         errors: {}
       });
-
-      // Reset reCAPTCHA
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-      setCapVal(null);
+    } finally {
+      resetRecaptcha();
     }
-  };
-
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.(com|net|org|edu|gov|it|uk|fr|de|es|jp|br|info|biz|online|site|tech|eu|co|me|tv|ai|dev)$/i;
-    return re.test(String(email).toLowerCase());
   };
 
   const socialLinks = [
@@ -698,7 +552,6 @@ const Home = () => {
         <div className="flex flex-col md:flex-row font-mono min-h-full pt-4 md:pt-0">
           <div
             id="home"
-            ref={homeRef}
             className="w-full md:w-1/2 flex flex-col justify-center items-start px-8 md:pl-32 text-white py-20 min-h-screen space-y-8"
           >
             {/* Available for Work Badge */}
@@ -767,12 +620,15 @@ const Home = () => {
               className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 h-[120px] sm:h-auto"
             >
               <button
+                type="button"
+                onClick={scrollToContact}
                 className="flex items-center justify-center bg-violet-600 text-white px-6 py-3 rounded-lg hover:scale-105 transition-transform duration-300 text-base sm:text-lg font-semibold"
               >
                 <FaPaperPlane className="mr-2" />
                 Let's Connect
               </button>
               <button
+                type="button"
                 onClick={() => projectsRef.current?.scrollIntoView({ behavior: 'smooth' })}
                 className="flex items-center justify-center border border-white text-white px-6 py-3 rounded-lg hover:scale-105 transition-transform duration-300 text-base sm:text-lg font-semibold"
               >
@@ -786,7 +642,7 @@ const Home = () => {
                 href="https://bit.ly/GitAntoDav"
                 target="_blank" 
                 rel="noopener noreferrer"
-                aria-label="Visita il mio profilo GitHub"
+                aria-label="Visit my GitHub profile"
                 className="text-white hover:text-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 rounded-full"
               >
                 <FaGithub size={24} />
@@ -795,7 +651,7 @@ const Home = () => {
                 href="https://bit.ly/LinkedinAntonio"
                 target="_blank" 
                 rel="noopener noreferrer"
-                aria-label="Connettiti con me su LinkedIn"
+                aria-label="Connect with me on LinkedIn"
                 className="text-white hover:text-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 rounded-full"
               >
                 <FaLinkedin size={24} />
@@ -804,50 +660,25 @@ const Home = () => {
           </div>
 
           <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-8 md:pr-32 text-white py-12">
-            {/* Cards for Mobile */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="grid grid-cols-1 gap-4 w-full md:hidden"
+              className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full max-w-2xl"
             >
               {[
                 { emoji: '⚛️', title: 'React', description: 'Frontend Development' },
                 { emoji: '🚀', title: 'Laravel', description: 'Backend Solutions' },
                 { emoji: '🎨', title: 'UI/UX', description: 'Design Systems' },
                 { emoji: '💻', title: 'Full Stack', description: 'End-to-end Development' }
-              ].map((card, index) => (
+              ].map((card) => (
                 <div
                   key={card.title}
                   className="outline outline-1 outline-white/20 bg-white/10 rounded-lg p-4 flex flex-col items-start transition-all duration-300 hover:scale-105"
                 >
-                  <div className="text-3xl mb-1">{card.emoji}</div>
-                  <h2 className="text-lg font-semibold mb-1 text-white">{card.title}</h2>
-                  <p className="text-sm text-gray-300">{card.description}</p>
-                </div>
-              ))}
-            </motion.div>
-
-            {/* Cards for Desktop */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="hidden md:grid grid-cols-2 gap-4 md:gap-6 w-full max-w-2xl"
-            >
-              {[
-                { emoji: '⚛️', title: 'React', description: 'Frontend Development' },
-                { emoji: '🚀', title: 'Laravel', description: 'Backend Solutions' },
-                { emoji: '🎨', title: 'UI/UX', description: 'Design Systems' },
-                { emoji: '💻', title: 'Full Stack', description: 'End-to-end Development' }
-              ].map((card, index) => (
-                <div
-                  key={card.title}
-                  className="outline outline-1 outline-white/20 bg-white/10 rounded-lg p-2 md:p-4 flex flex-col items-start transition-all duration-300 hover:scale-105"
-                >
-                  <div className="text-2xl md:text-3xl mb-1">{card.emoji}</div>
+                  <div className="text-3xl mb-1" aria-hidden="true">{card.emoji}</div>
                   <h2 className="text-lg md:text-xl font-semibold mb-1 text-white">{card.title}</h2>
-                  <p className="text-xs md:text-sm text-gray-300">{card.description}</p>
+                  <p className="text-sm text-gray-300">{card.description}</p>
                 </div>
               ))}
             </motion.div>
@@ -857,7 +688,6 @@ const Home = () => {
         {/* About Section */}
         <div
           id="about"
-          ref={aboutRef}
           className="w-full min-h-screen flex flex-col justify-center items-center text-center relative bg-black pt-24 pb-24 overflow-hidden"
         >
           <div
@@ -898,13 +728,14 @@ const Home = () => {
                 <div className="flex justify-center lg:justify-start space-x-4">
                   <motion.a
                     href={new URL('../assets/media/cv-2.pdf', import.meta.url).href}
+                    download="Antonio_DAversa_CV.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="flex items-center justify-center bg-violet-600 text-white px-8 py-4 rounded-xl hover:bg-violet-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
-                    <FaEye className="mr-3 text-xl" /> Download CV
+                    <FaDownload className="mr-3 text-xl" /> Download CV
                   </motion.a>
                 </div>
               </div>
@@ -946,20 +777,24 @@ const Home = () => {
                 />
               </div>
             ) : projects.length === 0 ? (
-              <div className="flex justify-center items-center">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1,
-                    ease: "linear"
-                  }}
-                  className="w-12 h-12 border-4 border-t-violet-600 border-white/20 rounded-full"
-                />
+              <div className="flex flex-col items-center gap-4 text-white/70">
+                <p>
+                  {projectsError
+                    ? "Couldn't load projects from GitHub right now."
+                    : 'No projects to show yet.'}
+                </p>
+                <a
+                  href={`https://github.com/${GITHUB_USER}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-violet-300 hover:text-violet-200"
+                >
+                  <FaGithub /> See them on GitHub
+                </a>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 [&>*:last-child]:mb-16">
-                {projects.map((project) => (
+                {shownProjects.map((project) => (
                   <motion.div
                     key={project.id}
                     initial={{ opacity: 0, y: 50 }}
@@ -991,7 +826,7 @@ const Home = () => {
                             src={project.owner.avatar_url}
                             alt={project.owner.login}
                             className="w-14 h-14 rounded-full 
-                            border-3 border-violet-500 
+                            border-2 border-violet-500 
                             object-cover 
                             shadow-md 
                             group-hover:scale-110 
@@ -1009,7 +844,7 @@ const Home = () => {
                             group-hover:text-violet-300 
                             transition-colors 
                             line-clamp-1">
-                            {project.name.replace(/-/g, ' ')}
+                            {project.name}
                           </h3>
                           <p className="text-sm text-white/60">
                             @{project.owner.login}
@@ -1050,7 +885,7 @@ const Home = () => {
                         before:bg-gradient-to-l 
                         before:from-[#1a1a2e] 
                         before:to-transparent flex-grow">
-                        "{truncateText(project.description)}"
+                        "{project.description}"
                       </p>
 
                       {/* Topics */}
@@ -1078,7 +913,7 @@ const Home = () => {
                             href={project.html_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-white/80 hover:text-violet-400 transition-colors duration-300 group"
+                            className="flex items-center text-white/80 hover:text-violet-400 transition-colors duration-300 group"
                           >
                             <FaGithub className="mr-2 group-hover:scale-125 transition-transform" />
                             <span className="text-sm">Repository</span>
@@ -1089,7 +924,7 @@ const Home = () => {
                               href={project.homepage}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-white/80 hover:text-violet-400 transition-colors duration-300 group"
+                              className="flex items-center text-white/80 hover:text-violet-400 transition-colors duration-300 group"
                             >
                               <FaLink className="mr-2 group-hover:scale-125 transition-transform" />
                               <span className="text-sm">Live Site</span>
@@ -1107,10 +942,11 @@ const Home = () => {
               </div>
             )}
           </div>
-          {projects.length < 6 ? null : (
+          {hasMoreProjects && (
             <button
+              type="button"
               onClick={loadMoreProjects}
-              className="flex items-center justify-center bg-violet-600 text-white px-6 py-3 rounded-lg hover:scale-105 transition-transform duration-300 text-base sm:text-lg font-semibold"
+              className="relative z-10 mt-8 flex items-center justify-center bg-violet-600 text-white px-6 py-3 rounded-lg hover:scale-105 transition-transform duration-300 text-base sm:text-lg font-semibold"
             >
               <FaChevronDown className="mr-2" /> Load More
             </button>
@@ -1168,12 +1004,12 @@ const Home = () => {
                       htmlFor="name" 
                       className="block text-white/70 mb-2 text-sm"
                     >
-                      Nome
+                      Name
                     </label>
                     <input
                       aria-required="true"
-                      aria-invalid={formStatus.errors.name}
-                      aria-describedby="name-error"
+                      aria-invalid={Boolean(formStatus.errors.name)}
+                      aria-describedby={formStatus.errors.name ? 'name-error' : undefined}
                       autoComplete="name"
                       type="text"
                       id="name"
@@ -1202,8 +1038,8 @@ const Home = () => {
                     </label>
                     <input
                       aria-required="true"
-                      aria-invalid={formStatus.errors.email}
-                      aria-describedby="email-error"
+                      aria-invalid={Boolean(formStatus.errors.email)}
+                      aria-describedby={formStatus.errors.email ? 'email-error' : undefined}
                       autoComplete="email"
                       type="email"
                       id="email"
@@ -1228,17 +1064,18 @@ const Home = () => {
                       htmlFor="message" 
                       className="block text-white/70 mb-2 text-sm"
                     >
-                      Messaggio
+                      Message
                     </label>
                     <textarea
                       aria-required="true"
-                      aria-invalid={formStatus.errors.message}
-                      aria-describedby="message-error"
+                      aria-invalid={Boolean(formStatus.errors.message)}
+                      aria-describedby={formStatus.errors.message ? 'message-error' : undefined}
                       id="message"
                       name="message"
                       value={formData.message}
                       onChange={handleChange}
                       rows="4"
+                      maxLength={FIELD_LIMITS.message}
                       className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 sm:px-4 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-violet-500 transition-colors"
                       placeholder="Write your message..."
                     ></textarea>
@@ -1252,18 +1089,23 @@ const Home = () => {
                     )}
                   </div>
 
-                  <div className="flex justify-center mt-4 overflow-x-auto w-full items-center">
-                    <ReCAPTCHA
-                      ref={recaptchaRef}
-                      sitekey={RECAPTCHA_SITE_KEY}
-                      onChange={handleRecaptchaChange}
-                      theme="dark"
-                    />
-                  </div>
+                  {RECAPTCHA_SITE_KEY && (
+                    <div className="flex justify-center mt-4 overflow-x-auto w-full items-center">
+                      <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={RECAPTCHA_SITE_KEY}
+                        onChange={handleRecaptchaChange}
+                        theme="dark"
+                      />
+                    </div>
+                  )}
 
                   <input
                     type="text"
                     name="honeypot"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
                     style={{ display: 'none' }}
                     value={formData.honeypot}
                     onChange={handleChange}
@@ -1277,17 +1119,18 @@ const Home = () => {
                       ${formStatus.isSubmitting
                         ? 'bg-violet-800 text-white/50 cursor-not-allowed'
                         : 'bg-violet-600 text-white hover:scale-105'}
+                      flex items-center justify-center
                     `}
                   >
                     {formStatus.isSubmitting ? 'Sending...' : (
                       <>
-                        <FaPaperPlane className="mr-2 inline" />
+                        <FaPaperPlane className="mr-2" />
                         Send Message
                       </>
                     )}
                   </button>
                   {formStatus.message && (
-                    <div className={`text-xs sm:text-sm mt-2 ${formStatus.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                    <div role="status" aria-live="polite" className={`text-xs sm:text-sm mt-2 ${formStatus.type === 'error' ? 'text-red-500' : 'text-green-500'}`}>
                       {formStatus.message}
                     </div>
                   )}

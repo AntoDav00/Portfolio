@@ -22,6 +22,9 @@ export const languageIcons = {
   'Java': FaJava,
   'HTML5': FaHtml5,
   'CSS3': FaCss3,
+  // Names as reported by the GitHub API
+  'HTML': FaHtml5,
+  'CSS': FaCss3,
   'JavaScript': SiJavascript,
   'Tailwind CSS': SiTailwindcss,
   'MongoDB': SiMongodb,
