@@ -1,9 +1,6 @@
 import { useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  FaCode,
-  FaServer,
-  FaTools,
   FaBriefcase,
   FaGraduationCap,
   FaCertificate,
@@ -13,11 +10,6 @@ import {
   FaPaperPlane,
   FaEye,
   FaDownload,
-  FaStore,
-  FaPaintBrush,
-  FaLaptopCode,
-  FaSchool,
-  FaAward,
   FaChevronDown,
   FaWhatsapp
 } from 'react-icons/fa';
@@ -27,243 +19,89 @@ import { truncateText, getLanguageIconComponents } from '../utils/projectUtils';
 import TerminalHero from '../components/TerminalHero';
 import FeaturedProjects from '../components/FeaturedProjects';
 import { FEATURED_REPOS } from '../data/featuredProjects';
+import { SKILL_GROUPS, TIMELINE } from '../data/about';
 
-// Carousel di skills e esperienze
-const SkillsAndExperienceCarousel = () => {
-  const [activeView, setActiveView] = useState('skills');
-  const [activeSkillCategory, setActiveSkillCategory] = useState(0);
-  const [activeExperienceCategory, setActiveExperienceCategory] = useState(0);
-
-  // Primi 3 categorie di skills
-  const skillCategories = [
-    {
-      name: "Frontend",
-      icon: <FaCode className="text-blue-400" />,
-      skills: [
-        { name: "React", level: 90 },
-        { name: "JavaScript", level: 85 },
-        { name: "HTML/CSS", level: 90 },
-        { name: "Tailwind", level: 85 }
-      ]
-    },
-    {
-      name: "Backend",
-      icon: <FaServer className="text-green-400" />,
-      skills: [
-        { name: "Laravel", level: 80 },
-        { name: "PHP", level: 75 },
-        { name: "MySQL", level: 75 },
-        { name: "API", level: 80 }
-      ]
-    },
-    {
-      name: "Tools & Others",
-      icon: <FaTools className="text-purple-400" />,
-      skills: [
-        { name: "Git", level: 85 },
-        { name: "Figma", level: 80 },
-        { name: "Premiere Pro", level: 90 },
-        { name: "Photoshop / Illustrator", level: 90 }
-      ]
-    }
-  ];
-
-  // Esperienze professionali, educazione e certificazioni
-  const experienceData = [
-    {
-      icon: <FaBriefcase className="text-blue-400" />,
-      title: "Professional Experience",
-      experiences: [
-        {
-          name: "La Siesta",
-          role: "Business Owner",
-          period: "OCT 2020 - JAN 2024",
-          description: "Managed and developed business strategies for a local enterprise.",
-          icon: <FaStore className="text-blue-500" />
-        },
-        {
-          name: "Meta Danza",
-          role: "Graphic Designer & Social Media Manager",
-          period: "AUG 2017 - Present",
-          description: "Created visual content and managed social media marketing strategies.",
-          icon: <FaPaintBrush className="text-purple-500" />
-        }
-      ]
-    },
-    {
-      icon: <FaGraduationCap className="text-green-400" />,
-      title: "Education",
-      experiences: [
-        {
-          name: "Aulab Hackademy+",
-          role: "Full Stack Web Developer JR - React.js Specialization",
-          period: "JUN 2024 - DEC 2024",
-          description: "Intensive bootcamp focusing on modern web development technologies.",
-          icon: <FaLaptopCode className="text-green-500" />
-        },
-        {
-          name: "IIS FERMI",
-          role: "High School Diploma in Transport & Logistics",
-          period: "JUL 2021",
-          description: "Comprehensive education in logistics and transportation management.",
-          icon: <FaSchool className="text-teal-500" />
-        }
-      ]
-    },
-    {
-      icon: <FaCertificate className="text-purple-400" />,
-      title: "Certifications",
-      experiences: [
-        {
-          name: "Full Stack Web Developer JR",
-          role: "Aulab Certification",
-          period: "2024",
-          description: "Professional certification in Full Stack Web Development.",
-          icon: <FaAward className="text-violet-500" />,
-          link: "https://api.accredible.com/v1/frontend/credential_website_embed_image/certificate/129722312"
-        }
-      ]
-    }
-  ];
-
-  return (
-    <div className="space-y-8">
-      {/* Navigation Buttons */}
-      <div className="flex justify-center space-x-4 mb-6">
-        <button
-          onClick={() => setActiveView('skills')}
-          className={`
-            px-6 py-3 rounded-lg flex items-center space-x-2
-            transition-all duration-300 
-            ${activeView === 'skills'
-              ? 'bg-violet-600 text-white'
-              : 'bg-white/10 text-white/70 hover:bg-white/20'}
-          `}
-        >
-          <FaCode /> <span>Skills</span>
-        </button>
-        <button
-          onClick={() => setActiveView('experience')}
-          className={`
-            px-6 py-3 rounded-lg flex items-center space-x-2
-            transition-all duration-300 
-            ${activeView === 'experience'
-              ? 'bg-violet-600 text-white'
-              : 'bg-white/10 text-white/70 hover:bg-white/20'}
-          `}
-        >
-          <FaBriefcase /> <span>Experience</span>
-        </button>
-      </div>
-
-      {activeView === 'skills' ? (
-        <>
-          <div className="flex justify-center space-x-2 sm:space-x-4 mb-6 flex-wrap">
-            {skillCategories.map((category, index) => (
-              <button
-                key={category.name}
-                onClick={() => setActiveSkillCategory(index)}
-                className={`
-                  px-3 py-2 sm:px-6 sm:py-3 rounded-full flex items-center space-x-2 
-                  transition-all duration-300 text-xs sm:text-sm mb-2
-                  ${activeSkillCategory === index
-                    ? 'bg-violet-600 text-white'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}
-                  ${activeSkillCategory === index ? 'hover:bg-violet-700' : ''}
-                `}
-              >
-                {category.icon}
-                <span className="hidden sm:inline">{category.name}</span>
-              </button>
-            ))}
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeSkillCategory}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-4 px-4 sm:px-0"
-            >
-              {skillCategories[activeSkillCategory].skills.map((skill) => (
-                <div key={skill.name} className="w-full">
-                  <div className="flex justify-between text-sm text-white/70 mb-1">
-                    <span>{skill.name}</span>
-                    <span>{skill.level}%</span>
-                  </div>
-                  <div className="w-full bg-white/10 rounded-full h-2 mb-2">
-                    <div
-                      className="bg-violet-600 h-2 rounded-full min-w-[10%]"
-                      style={{ width: `${skill.level}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
-        </>
-      ) : (
-        <div className="space-y-6 px-4 sm:px-0">
-          <div className="flex justify-center space-x-2 sm:space-x-4 mb-6 flex-wrap">
-            {experienceData.map((category, index) => (
-              <button
-                key={category.title}
-                onClick={() => setActiveExperienceCategory(index)}
-                className={`
-              px-3 py-2 sm:px-6 sm:py-3 rounded-full flex items-center space-x-2 
-              transition-all duration-300 text-xs sm:text-sm mb-2
-              ${activeExperienceCategory === index
-                    ? 'bg-violet-600 text-white'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}
-              ${activeExperienceCategory === index ? 'hover:bg-violet-700' : ''}
-            `}
-              >
-                {category.icon}
-                <span className="hidden sm:inline">{category.title}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-6">
-            {experienceData[activeExperienceCategory].experiences.map((exp, index) => (
-              <motion.div
-                key={exp.name}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                className="flex items-start gap-4 bg-white/5 p-4 sm:p-6 rounded-lg text-left"
-              >
-                <div className="shrink-0 w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center">
-                  {exp.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-3 mb-2">
-                    <h3 className="text-base sm:text-lg font-semibold text-white">{exp.name}</h3>
-                    <span className="text-xs sm:text-sm text-white/60">{exp.period}</span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-white/80 italic">{exp.role}</p>
-                  <p className="text-xs text-white/70 mt-1 sm:mt-2">{exp.description}</p>
-                  {exp.link && (
-                    <a
-                      href={exp.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-violet-400 hover:text-violet-300 mt-1 sm:mt-2 inline-block"
-                    >
-                      View Certification
-                    </a>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+const TIMELINE_TYPES = {
+  work: { label: 'work', icon: FaBriefcase, color: 'text-sky-300 border-sky-400/40 bg-sky-400/10' },
+  education: { label: 'education', icon: FaGraduationCap, color: 'text-emerald-300 border-emerald-400/40 bg-emerald-400/10' },
+  cert: { label: 'certification', icon: FaCertificate, color: 'text-violet-300 border-violet-400/40 bg-violet-400/10' },
 };
+
+// Skills grouped by usage + a single chronological timeline
+const SkillsAndExperience = () => (
+  <div className="space-y-10 text-left px-2 sm:px-0">
+    <section aria-labelledby="skills-title">
+      <h3 id="skills-title" className="font-mono text-sm text-white/50 mb-4">
+        <span className="text-violet-400">$</span> ls skills/
+      </h3>
+      <div className="space-y-4">
+        {SKILL_GROUPS.map((group) => (
+          <div key={group.label}>
+            <p className="font-mono text-xs uppercase tracking-wider text-white/40 mb-2">{group.title}</p>
+            <ul className="flex flex-wrap gap-2">
+              {group.skills.map((skill) => (
+                <li
+                  key={skill}
+                  className="font-mono text-xs sm:text-sm px-2.5 py-1 rounded-md bg-violet-500/10 border border-violet-500/30 text-violet-100"
+                >
+                  {skill}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section aria-labelledby="timeline-title">
+      <h3 id="timeline-title" className="font-mono text-sm text-white/50 mb-4">
+        <span className="text-violet-400">$</span> git log --experience
+      </h3>
+      <ol className="relative border-l border-white/15 ml-3 space-y-6">
+        {TIMELINE.map((item, index) => {
+          const type = TIMELINE_TYPES[item.type];
+          const Icon = type.icon;
+          return (
+            <motion.li
+              key={item.name}
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
+              className="relative pl-8"
+            >
+              <span
+                className={`absolute -left-[13px] top-0.5 w-6 h-6 rounded-full border flex items-center justify-center bg-black ${type.color}`}
+                aria-hidden="true"
+              >
+                <Icon size={11} />
+              </span>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
+                <span className="font-mono text-xs text-white/50">{item.period}</span>
+                <span className={`font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border ${type.color}`}>
+                  {type.label}
+                </span>
+              </div>
+              <h4 className="text-base sm:text-lg font-semibold text-white">{item.name}</h4>
+              <p className="text-sm text-white/80 italic">{item.role}</p>
+              <p className="text-sm text-white/60 mt-1">{item.description}</p>
+              {item.link && (
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-violet-400 hover:text-violet-300 mt-1 inline-block"
+                >
+                  View certification →
+                </a>
+              )}
+            </motion.li>
+          );
+        })}
+      </ol>
+    </section>
+  </div>
+);
 
 const GITHUB_USER = 'antodav00';
 const PROJECTS_PAGE_SIZE = 6;
@@ -636,12 +474,11 @@ const Home = () => {
           />
 
           <div className="relative z-10 w-full max-w-6xl px-4 mb-12">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-violet-200 to-violet-500 text-transparent bg-clip-text mb-6 text-center">
-              About Me
+            <h2 className="font-mono text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 text-center">
+              <span className="text-violet-400">~/</span>about<span className="text-violet-400 animate-pulse">_</span>
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl mx-auto text-center">
-              🚀 Full Stack Developer
-              Passionate about building innovative, secure web applications using React, creating elegant, scalable digital solutions.
+              Full Stack Developer passionate about building innovative, secure web applications using React, creating elegant, scalable digital solutions.
             </p>
           </div>
 
@@ -683,7 +520,7 @@ const Home = () => {
 
             {/* Colonna Destra: Skills e Esperienze */}
             <div className="w-full">
-              <SkillsAndExperienceCarousel />
+              <SkillsAndExperience />
             </div>
           </motion.div>
         </div>
@@ -700,8 +537,8 @@ const Home = () => {
           />
 
           <div className="relative z-10 w-full max-w-6xl px-4">
-            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-violet-200 to-violet-500 text-transparent bg-clip-text lg:mb-12 mb-6 text-center">
-              My Projects
+            <h2 className="font-mono text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 lg:mb-12 text-center">
+              <span className="text-violet-400">~/</span>projects<span className="text-violet-400 animate-pulse">_</span>
             </h2>
 
             <FeaturedProjects />
@@ -916,11 +753,8 @@ const Home = () => {
               transition={{ duration: 0.6 }}
               className="text-center mb-8 w-full"
             >
-              <h2
-                id="contact-form-title"
-                className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-violet-200 to-blue-500 text-transparent bg-clip-text mb-4 text-center"
-              >
-                Contact Me
+              <h2 id="contact-form-title" className="font-mono text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 text-center">
+                <span className="text-violet-400">~/</span>contact<span className="text-violet-400 animate-pulse">_</span>
               </h2>
               <p className="text-white/80 max-w-2xl mx-auto text-lg">
                 Have a project in mind? Let's discuss how we can bring your ideas to life.
