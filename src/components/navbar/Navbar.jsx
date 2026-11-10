@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     Navbar,
     Typography,
@@ -131,7 +131,10 @@ export function CustomNavbar() {
             <div className="container mx-auto flex items-center justify-between text-white lg:p-2 md:p-4">
                 <Typography
                     as="a"
-                    onClick={() => scrollToSection('home')}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        scrollToSection('home');
+                    }}
                     href="#home"
                     className="cursor-pointer font-mono font-bold text-base md:text-lg flex items-center"
                 >
@@ -146,6 +149,8 @@ export function CustomNavbar() {
                         variant="text"
                         className="ml-auto h-8 w-8 text-white hover:bg-transparent focus:bg-transparent active:bg-transparent lg:hidden relative"
                         ripple={false}
+                        aria-label={openNav ? "Close menu" : "Open menu"}
+                        aria-expanded={openNav}
                         onClick={() => setOpenNav(!openNav)}
                     >
                         {openNav ? (
