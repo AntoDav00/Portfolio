@@ -24,6 +24,9 @@ import {
 import emailjs from '@emailjs/browser';
 import ReCAPTCHA from "react-google-recaptcha";
 import { truncateText, getLanguageIconComponents } from '../utils/projectUtils';
+import TerminalHero from '../components/TerminalHero';
+import FeaturedProjects from '../components/FeaturedProjects';
+import { FEATURED_REPOS } from '../data/featuredProjects';
 
 // Carousel di skills e esperienze
 const SkillsAndExperienceCarousel = () => {
@@ -262,39 +265,6 @@ const SkillsAndExperienceCarousel = () => {
   );
 };
 
-// Custom Typing Component
-const TypingEffect = ({ texts, speed = 100, backSpeed = 50, pause = 1000 }) => {
-  const [displayText, setDisplayText] = useState('');
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const currentText = texts[currentTextIndex];
-    const isComplete = !isDeleting && displayText === currentText;
-
-    const timer = setTimeout(() => {
-      if (isComplete) {
-        setIsDeleting(true);
-      } else if (!isDeleting) {
-        setDisplayText(currentText.slice(0, displayText.length + 1));
-      } else if (displayText.length > 0) {
-        setDisplayText(currentText.slice(0, displayText.length - 1));
-      } else {
-        setIsDeleting(false);
-        setCurrentTextIndex((prev) => (prev + 1) % texts.length);
-      }
-    }, isComplete ? pause : isDeleting ? backSpeed : speed);
-
-    return () => clearTimeout(timer);
-  }, [displayText, currentTextIndex, isDeleting, texts, speed, backSpeed, pause]);
-
-  return (
-    <div className="h-[30px] min-h-[30px] flex items-center">
-      <span>{displayText}&nbsp;</span>
-    </div>
-  );
-};
-
 const GITHUB_USER = 'antodav00';
 const PROJECTS_PAGE_SIZE = 6;
 
@@ -367,7 +337,8 @@ const Home = () => {
             !repo.archived &&
             !repo.name.includes('template') &&
             !repo.name.includes('example') &&
-            repo.description
+            repo.description &&
+            !FEATURED_REPOS.includes(repo.name.toLowerCase())
           )
           .sort((a, b) => new Date(b.pushed_at || b.updated_at) - new Date(a.pushed_at || a.updated_at))
           .map(repo => ({
@@ -552,7 +523,7 @@ const Home = () => {
         <div className="flex flex-col md:flex-row font-mono min-h-full pt-4 md:pt-0">
           <div
             id="home"
-            className="w-full md:w-1/2 flex flex-col justify-center items-start px-8 md:pl-32 text-white py-20 min-h-screen space-y-8"
+            className="w-full md:w-1/2 flex flex-col justify-center items-start px-6 sm:px-8 md:pl-16 lg:pl-32 text-white pt-28 pb-10 md:py-20 md:min-h-screen space-y-7"
           >
             {/* Available for Work Badge */}
             <motion.div
@@ -584,48 +555,31 @@ const Home = () => {
               <span className="text-sm font-semibold">Available for Work</span>
             </motion.div>
 
-            {/* Name with Dynamic Gradient */}
-            <div className="space-y-4">
-              <h1 className="text-3xl md:text-5xl font-bold text-white text-left"> Hi, I'm </h1>
-              <span
-                className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-white via-violet-300 to-violet-500 text-transparent bg-clip-text text-left block"
-              >
-                Antonio D'Aversa
-              </span>
-            </div>
-
-            {/* Typing Animation */}
-            <div className="my-4 md:my-6 self-start text-xl text-gray-200">
-              <TypingEffect
-                texts={[
-                  'Full Stack Developer',
-                  'UI/UX Designer',
-                  'React.JS Specialist',
-                  'Clean Code Enthusiast',
-                  'Graphical Designer'
-                ]}
-              />
+            {/* Name */}
+            <div className="space-y-3">
+              <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-violet-300 to-violet-500 text-transparent bg-clip-text text-left leading-tight">
+                Antonio D&apos;Aversa
+              </h1>
+              <p className="text-lg md:text-xl text-gray-200 text-left">
+                Full Stack Developer <span className="text-violet-400">·</span> React &amp; Laravel
+              </p>
             </div>
 
             {/* Description */}
-            <p className="text-base md:text-lg text-gray-300 mb-6 text-left w-full md:w-2/3">
-              Building modern web applications with a focus on user experience and clean code.
+            <p className="text-base md:text-lg text-gray-300 text-left w-full md:w-4/5">
+              I build modern web applications with a focus on user experience and clean code.
+              <span className="hidden md:inline"> Don&apos;t want to scroll? Ask the terminal.</span>
             </p>
 
             {/* Action Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 h-[120px] sm:h-auto"
-            >
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={scrollToContact}
                 className="flex items-center justify-center bg-violet-600 text-white px-6 py-3 rounded-lg hover:scale-105 transition-transform duration-300 text-base sm:text-lg font-semibold"
               >
                 <FaPaperPlane className="mr-2" />
-                Let's Connect
+                Let&apos;s Connect
               </button>
               <button
                 type="button"
@@ -634,22 +588,22 @@ const Home = () => {
               >
                 <FaEye className="mr-2" /> View Projects
               </button>
-            </motion.div>
+            </div>
 
             {/* Social Links */}
-            <div className="flex space-x-4 mb-6">
-              <a 
+            <div className="flex space-x-4">
+              <a
                 href="https://bit.ly/GitAntoDav"
-                target="_blank" 
+                target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Visit my GitHub profile"
                 className="text-white hover:text-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 rounded-full"
               >
                 <FaGithub size={24} />
               </a>
-              <a 
+              <a
                 href="https://bit.ly/LinkedinAntonio"
-                target="_blank" 
+                target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Connect with me on LinkedIn"
                 className="text-white hover:text-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 rounded-full"
@@ -659,28 +613,14 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-8 md:pr-32 text-white py-12">
+          <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-4 sm:px-8 md:pr-16 lg:pr-32 text-white pb-20 md:py-12">
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full max-w-2xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="w-full flex justify-center"
             >
-              {[
-                { emoji: '⚛️', title: 'React', description: 'Frontend Development' },
-                { emoji: '🚀', title: 'Laravel', description: 'Backend Solutions' },
-                { emoji: '🎨', title: 'UI/UX', description: 'Design Systems' },
-                { emoji: '💻', title: 'Full Stack', description: 'End-to-end Development' }
-              ].map((card) => (
-                <div
-                  key={card.title}
-                  className="outline outline-1 outline-white/20 bg-white/10 rounded-lg p-4 flex flex-col items-start transition-all duration-300 hover:scale-105"
-                >
-                  <div className="text-3xl mb-1" aria-hidden="true">{card.emoji}</div>
-                  <h2 className="text-lg md:text-xl font-semibold mb-1 text-white">{card.title}</h2>
-                  <p className="text-sm text-gray-300">{card.description}</p>
-                </div>
-              ))}
+              <TerminalHero />
             </motion.div>
           </div>
         </div>
@@ -763,6 +703,11 @@ const Home = () => {
             <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-violet-200 to-violet-500 text-transparent bg-clip-text lg:mb-12 mb-6 text-center">
               My Projects
             </h2>
+
+            <FeaturedProjects />
+
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 text-left">More on GitHub</h3>
+            <p className="text-white/60 mb-8 text-left">Fetched live from my GitHub — experiments, exercises and side projects.</p>
 
             {isLoading ? (
               <div className="flex justify-center items-center">
