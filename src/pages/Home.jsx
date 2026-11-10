@@ -74,7 +74,7 @@ const SkillsAndExperienceCarousel = () => {
         {
           name: "La Siesta",
           role: "Business Owner",
-          period: "OCT 2020 - Present",
+          period: "OCT 2020 - JAN 2024",
           description: "Managed and developed business strategies for a local enterprise.",
           icon: <FaStore className="text-blue-500" />
         },
