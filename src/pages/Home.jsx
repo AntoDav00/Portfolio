@@ -27,7 +27,14 @@ const TIMELINE_TYPES = {
   cert: { label: 'certification', icon: FaCertificate, color: 'text-violet-300 border-violet-400/40 bg-violet-400/10' },
 };
 
-// Skills grouped by usage + a single chronological timeline
+// Order of the experience blocks; `flag` is shown as `$ git log --<flag>`
+const TIMELINE_GROUPS = [
+  { type: 'work', flag: 'work' },
+  { type: 'education', flag: 'education' },
+  { type: 'cert', flag: 'certifications' },
+];
+
+// Skills grouped by usage + one timeline per experience type
 const SkillsAndExperience = () => (
   <div className="space-y-10 text-left px-2 sm:px-0">
     <section aria-labelledby="skills-title">
@@ -53,53 +60,52 @@ const SkillsAndExperience = () => (
       </div>
     </section>
 
-    <section aria-labelledby="timeline-title">
-      <h3 id="timeline-title" className="font-mono text-sm text-white/50 mb-4">
-        <span className="text-violet-400">$</span> git log --experience
-      </h3>
-      <ol className="relative border-l border-white/15 ml-3 space-y-6">
-        {TIMELINE.map((item, index) => {
-          const type = TIMELINE_TYPES[item.type];
-          const Icon = type.icon;
-          return (
-            <motion.li
-              key={item.name}
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.08 }}
-              className="relative pl-8"
-            >
-              <span
-                className={`absolute -left-[13px] top-0.5 w-6 h-6 rounded-full border flex items-center justify-center bg-black ${type.color}`}
-                aria-hidden="true"
+    {TIMELINE_GROUPS.map((group) => {
+      const type = TIMELINE_TYPES[group.type];
+      const Icon = type.icon;
+      const items = TIMELINE.filter((item) => item.type === group.type);
+      if (!items.length) return null;
+      return (
+        <section key={group.type} aria-labelledby={`timeline-${group.type}`}>
+          <h3 id={`timeline-${group.type}`} className="font-mono text-sm text-white/50 mb-4">
+            <span className="text-violet-400">$</span> git log --{group.flag}
+          </h3>
+          <ol className="relative border-l border-white/15 ml-3 space-y-6">
+            {items.map((item, index) => (
+              <motion.li
+                key={item.name}
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.08 }}
+                className="relative pl-8"
               >
-                <Icon size={11} />
-              </span>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-                <span className="font-mono text-xs text-white/50">{item.period}</span>
-                <span className={`font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border ${type.color}`}>
-                  {type.label}
-                </span>
-              </div>
-              <h4 className="text-base sm:text-lg font-semibold text-white">{item.name}</h4>
-              <p className="text-sm text-white/80 italic">{item.role}</p>
-              <p className="text-sm text-white/60 mt-1">{item.description}</p>
-              {item.link && (
-                <a
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-violet-400 hover:text-violet-300 mt-1 inline-block"
+                <span
+                  className={`absolute -left-[13px] top-0.5 w-6 h-6 rounded-full border flex items-center justify-center bg-black ${type.color}`}
+                  aria-hidden="true"
                 >
-                  View certification →
-                </a>
-              )}
-            </motion.li>
-          );
-        })}
-      </ol>
-    </section>
+                  <Icon size={11} />
+                </span>
+                <p className="font-mono text-xs text-white/50 mb-1">{item.period}</p>
+                <h4 className="text-base sm:text-lg font-semibold text-white">{item.name}</h4>
+                <p className="text-sm text-white/80 italic">{item.role}</p>
+                <p className="text-sm text-white/60 mt-1">{item.description}</p>
+                {item.link && (
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-violet-400 hover:text-violet-300 mt-1 inline-block"
+                  >
+                    View certification →
+                  </a>
+                )}
+              </motion.li>
+            ))}
+          </ol>
+        </section>
+      );
+    })}
   </div>
 );
 

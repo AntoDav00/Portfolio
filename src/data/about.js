@@ -17,7 +17,7 @@ export const SKILL_GROUPS = [
   },
 ];
 
-// One chronological timeline, most recent first. `type` drives the badge and icon.
+// Experience entries, most recent first within each type. `type` picks the group and icon.
 export const TIMELINE = [
   {
     type: 'work',
