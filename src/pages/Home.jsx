@@ -233,13 +233,13 @@ const SkillsAndExperienceCarousel = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.2 }}
-                className="relative"
+                className="flex items-start gap-4 bg-white/5 p-4 sm:p-6 rounded-lg text-left"
               >
-                <div className="absolute left-1/2 transform -translate-x-1/2 -top-5 w-16 h-16 bg-black border-2 border-white/10 rounded-full flex items-center justify-center">
+                <div className="shrink-0 w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center">
                   {exp.icon}
                 </div>
-                <div className="bg-white/5 p-4 sm:p-6 rounded-lg pt-12 sm:pt-8">
-                  <div className="flex justify-between items-center mb-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start gap-3 mb-2">
                     <h3 className="text-base sm:text-lg font-semibold text-white">{exp.name}</h3>
                     <span className="text-xs sm:text-sm text-white/60">{exp.period}</span>
                   </div>
