@@ -67,7 +67,7 @@ Accessible UI components
 Suggestions and contributions are welcome!
 
 ## 📧 Contact
-- **GitHub:** [Antonio](https://https://bit.ly/GitAntoDav)
+- **GitHub:** [Antonio](https://bit.ly/GitAntoDav)
 - **LinkedIn:** [Antonio](https://bit.ly/LinkedinAntonio)
 
 ## 📝 License
